@@ -1,3 +1,5 @@
+import Calendar from "./components/Calendar";
+
 export default function Home() {
   return (
     <div className="app-container">
@@ -28,11 +30,8 @@ export default function Home() {
         <p>8,432 / 10,000 steps</p>
       </div>
 
-      {/* FOCUS */}
-      <div className="card">
-        <div className="section-title">Focus</div>
-        <p className="muted">Rest • Reflect • Prepare</p>
-      </div>
+      {/* CALENDAR */}
+      <Calendar />
 
     </div>
   );
