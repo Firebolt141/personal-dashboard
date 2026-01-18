@@ -58,7 +58,7 @@ export default function Calendar() {
         setTodayDate(newDate);
         setSelectedDate(newDate);
       }
-    }, 60_000); // check every minute
+    }, 60_000);
 
     return () => clearInterval(interval);
   }, [todayDate]);
@@ -196,10 +196,6 @@ export default function Calendar() {
         <div style={{ marginTop: 16 }}>
           <div className="section-title">Details</div>
 
-          {selectedEvents.length === 0 && (
-            <p className="muted">No items for this day.</p>
-          )}
-
           {selectedEvents.map((e, i) => (
             <div
               key={i}
@@ -219,19 +215,82 @@ export default function Calendar() {
                 />
               )}
 
-              <span
-                style={{
-                  textDecoration: e.completed ? "line-through" : "none",
-                }}
-              >
+              <span style={{ textDecoration: e.completed ? "line-through" : "none" }}>
                 <span style={{ color: dotColor(e.type), marginRight: 6 }}>●</span>
                 {e.title}
-                {e.type === "trip" && e.start && e.end && (
-                  <span className="muted"> ({e.start}–{e.end})</span>
-                )}
               </span>
             </div>
           ))}
+
+          {/* ADD FORM */}
+          <div style={{ marginTop: 12 }}>
+            <input
+              placeholder="Title..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              style={{
+                width: "100%",
+                padding: 8,
+                borderRadius: 10,
+                background: "#111",
+                border: "1px solid #333",
+                color: "#fff",
+                marginBottom: 8,
+              }}
+            />
+
+            <div style={{ display: "flex", gap: 8 }}>
+              <select
+                value={type}
+                onChange={(e) => setType(e.target.value as EventType)}
+                style={{
+                  flex: 1,
+                  padding: 8,
+                  borderRadius: 10,
+                  background: "#111",
+                  border: "1px solid #333",
+                  color: "#fff",
+                }}
+              >
+                <option value="event">Event</option>
+                <option value="trip">Trip</option>
+                <option value="todo">Todo</option>
+              </select>
+
+              {type === "trip" && (
+                <input
+                  type="number"
+                  min={selectedDate}
+                  max={daysInMonth}
+                  value={tripEnd}
+                  onChange={(e) => setTripEnd(Number(e.target.value))}
+                  style={{
+                    width: 70,
+                    padding: 8,
+                    borderRadius: 10,
+                    background: "#111",
+                    border: "1px solid #333",
+                    color: "#fff",
+                  }}
+                />
+              )}
+
+              <button
+                type="button"
+                onClick={addEvent}
+                style={{
+                  padding: "8px 14px",
+                  borderRadius: 10,
+                  background: "#2a2a2a",
+                  border: "none",
+                  color: "#fff",
+                  cursor: "pointer",
+                }}
+              >
+                Add
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
