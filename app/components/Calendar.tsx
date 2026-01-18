@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -9,19 +9,21 @@ type EventType = "event" | "trip" | "todo";
 type CalendarEvent = {
   type: EventType;
   title: string;
-  date?: number;      // for event & todo
-  start?: number;     // for trip
-  end?: number;       // for trip
+  date?: number;
+  start?: number;
+  end?: number;
 };
+
+const STORAGE_KEY = "personal-dashboard-events";
 
 function dotColor(type: EventType) {
   switch (type) {
     case "event":
-      return "#3b82f6"; // blue
+      return "#3b82f6";
     case "trip":
-      return "#a855f7"; // purple
+      return "#a855f7";
     case "todo":
-      return "#22c55e"; // green
+      return "#22c55e";
   }
 }
 
@@ -30,13 +32,7 @@ export default function Calendar() {
   const todayDate = today.getDate();
 
   const [selectedDate, setSelectedDate] = useState<number | null>(todayDate);
-
-  const [events, setEvents] = useState<CalendarEvent[]>([
-    { type: "event", title: "Team meeting", date: 12 },
-    { type: "trip", title: "Kyoto Trip", start: 18, end: 21 },
-    { type: "todo", title: "Buy groceries", date: 22 },
-  ]);
-
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [title, setTitle] = useState("");
   const [type, setType] = useState<EventType>("event");
   const [tripEnd, setTripEnd] = useState<number>(todayDate);
@@ -50,6 +46,19 @@ export default function Calendar() {
 
   const dates: (number | null)[] = Array(firstDay).fill(null);
   for (let i = 1; i <= daysInMonth; i++) dates.push(i);
+
+  /* ---------- LOAD FROM STORAGE ---------- */
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      setEvents(JSON.parse(stored));
+    }
+  }, []);
+
+  /* ---------- SAVE TO STORAGE ---------- */
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+  }, [events]);
 
   function eventsForDate(date: number) {
     return events.filter((e) => {
