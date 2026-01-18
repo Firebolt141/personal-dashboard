@@ -12,6 +12,7 @@ type CalendarEvent = {
   date?: number;
   start?: number;
   end?: number;
+  completed?: boolean; // ✅ NEW
 };
 
 const STORAGE_KEY = "personal-dashboard-events";
@@ -47,15 +48,13 @@ export default function Calendar() {
   const dates: (number | null)[] = Array(firstDay).fill(null);
   for (let i = 1; i <= daysInMonth; i++) dates.push(i);
 
-  /* ---------- LOAD FROM STORAGE ---------- */
+  /* ---------- LOAD ---------- */
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      setEvents(JSON.parse(stored));
-    }
+    if (stored) setEvents(JSON.parse(stored));
   }, []);
 
-  /* ---------- SAVE TO STORAGE ---------- */
+  /* ---------- SAVE ---------- */
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
   }, [events]);
@@ -80,11 +79,26 @@ export default function Calendar() {
     } else {
       setEvents((prev) => [
         ...prev,
-        { type, title, date: selectedDate },
+        {
+          type,
+          title,
+          date: selectedDate,
+          completed: type === "todo" ? false : undefined,
+        },
       ]);
     }
 
     setTitle("");
+  }
+
+  function toggleTodo(index: number) {
+    setEvents((prev) =>
+      prev.map((e, i) =>
+        i === index && e.type === "todo"
+          ? { ...e, completed: !e.completed }
+          : e
+      )
+    );
   }
 
   const selectedEvents = selectedDate ? eventsForDate(selectedDate) : [];
@@ -152,6 +166,7 @@ export default function Calendar() {
                       height: 6,
                       borderRadius: "50%",
                       background: dotColor(e.type),
+                      opacity: e.type === "todo" && e.completed ? 0.3 : 1,
                     }}
                   />
                 ))}
@@ -171,13 +186,36 @@ export default function Calendar() {
           )}
 
           {selectedEvents.map((e, i) => (
-            <p key={i}>
-              <span style={{ color: dotColor(e.type), marginRight: 6 }}>●</span>
-              {e.title}
-              {e.type === "trip" && e.start && e.end && (
-                <span className="muted"> ({e.start}–{e.end})</span>
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                marginBottom: 6,
+                opacity: e.completed ? 0.5 : 1,
+              }}
+            >
+              {e.type === "todo" && (
+                <input
+                  type="checkbox"
+                  checked={!!e.completed}
+                  onChange={() => toggleTodo(events.indexOf(e))}
+                />
               )}
-            </p>
+
+              <span
+                style={{
+                  textDecoration: e.completed ? "line-through" : "none",
+                }}
+              >
+                <span style={{ color: dotColor(e.type), marginRight: 6 }}>●</span>
+                {e.title}
+                {e.type === "trip" && e.start && e.end && (
+                  <span className="muted"> ({e.start}–{e.end})</span>
+                )}
+              </span>
+            </div>
           ))}
 
           {/* ADD FORM */}
