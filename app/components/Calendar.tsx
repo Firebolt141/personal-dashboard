@@ -12,7 +12,7 @@ type CalendarEvent = {
   date?: number;
   start?: number;
   end?: number;
-  completed?: boolean; // ✅ NEW
+  completed?: boolean;
 };
 
 const STORAGE_KEY = "personal-dashboard-events";
@@ -29,15 +29,14 @@ function dotColor(type: EventType) {
 }
 
 export default function Calendar() {
-  const today = new Date();
-  const todayDate = today.getDate();
-
+  const [todayDate, setTodayDate] = useState(new Date().getDate());
   const [selectedDate, setSelectedDate] = useState<number | null>(todayDate);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [title, setTitle] = useState("");
   const [type, setType] = useState<EventType>("event");
   const [tripEnd, setTripEnd] = useState<number>(todayDate);
 
+  const today = new Date();
   const year = today.getFullYear();
   const month = today.getMonth();
   const monthLabel = today.toLocaleString("en-US", { month: "long" });
@@ -47,6 +46,22 @@ export default function Calendar() {
 
   const dates: (number | null)[] = Array(firstDay).fill(null);
   for (let i = 1; i <= daysInMonth; i++) dates.push(i);
+
+  /* ---------- AUTO-FOCUS TODAY ---------- */
+  useEffect(() => {
+    setSelectedDate(todayDate);
+
+    const interval = setInterval(() => {
+      const now = new Date();
+      const newDate = now.getDate();
+      if (newDate !== todayDate) {
+        setTodayDate(newDate);
+        setSelectedDate(newDate);
+      }
+    }, 60_000); // check every minute
+
+    return () => clearInterval(interval);
+  }, [todayDate]);
 
   /* ---------- LOAD ---------- */
   useEffect(() => {
@@ -217,75 +232,6 @@ export default function Calendar() {
               </span>
             </div>
           ))}
-
-          {/* ADD FORM */}
-          <div style={{ marginTop: 12 }}>
-            <input
-              placeholder="Title..."
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              style={{
-                width: "100%",
-                padding: 8,
-                borderRadius: 10,
-                background: "#111",
-                border: "1px solid #333",
-                color: "#fff",
-                marginBottom: 8,
-              }}
-            />
-
-            <div style={{ display: "flex", gap: 8 }}>
-              <select
-                value={type}
-                onChange={(e) => setType(e.target.value as EventType)}
-                style={{
-                  flex: 1,
-                  padding: 8,
-                  borderRadius: 10,
-                  background: "#111",
-                  border: "1px solid #333",
-                  color: "#fff",
-                }}
-              >
-                <option value="event">Event</option>
-                <option value="trip">Trip</option>
-                <option value="todo">Todo</option>
-              </select>
-
-              {type === "trip" && (
-                <input
-                  type="number"
-                  min={selectedDate}
-                  max={daysInMonth}
-                  value={tripEnd}
-                  onChange={(e) => setTripEnd(Number(e.target.value))}
-                  style={{
-                    width: 70,
-                    padding: 8,
-                    borderRadius: 10,
-                    background: "#111",
-                    border: "1px solid #333",
-                    color: "#fff",
-                  }}
-                />
-              )}
-
-              <button
-                onClick={addEvent}
-                style={{
-                  padding: "8px 14px",
-                  borderRadius: 10,
-                  background: "#2a2a2a",
-                  border: "none",
-                  color: "#fff",
-                  cursor: "pointer",
-                }}
-              >
-                Add
-              </button>
-            </div>
-          </div>
         </div>
       )}
     </div>
