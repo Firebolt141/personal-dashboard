@@ -1,26 +1,84 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* ---------- BASE ---------- */
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: radial-gradient(circle at top, #1a1a1a, #0b0b0b 75%);
+  color: #eaeaea;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  margin: 0;
+}
+
+/* ---------- CONTAINER ---------- */
+
+.app-container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---------- CARD ---------- */
+
+.card {
+  background: linear-gradient(180deg, #1b1b1b, #111);
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 10px 25px rgba(0, 0, 0, 0.6);
+}
+
+/* ---------- HERO ---------- */
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.image-wrapper img {
+  width: 100%;
+  max-width: 260px;
+  border-radius: 16px;
+  margin-bottom: 12px;
+  box-shadow:
+    0 0 40px rgba(255, 140, 60, 0.25),
+    inset 0 0 20px rgba(0, 0, 0, 0.6);
+}
+
+/* ---------- TEXT ---------- */
+
+h2 {
+  font-size: 1.4rem;
+  margin: 6px 0;
+}
+
+h3 {
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.muted {
+  color: #a1a1a1;
+}
+
+.italic {
+  font-style: italic;
+}
+
+/* ---------- SECTIONS ---------- */
+
+.section-title {
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #888;
+  margin-bottom: 6px;
 }
