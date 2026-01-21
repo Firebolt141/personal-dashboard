@@ -9,13 +9,50 @@ type EventType = "event" | "trip" | "todo";
 type CalendarEvent = {
   type: EventType;
   title: string;
-  date?: number;
-  start?: number;
-  end?: number;
+  date?: string;
+  start?: string;
+  end?: string;
   completed?: boolean;
 };
 
 const STORAGE_KEY = "personal-dashboard-events";
+
+function formatDateKey(year: number, month: number, day: number) {
+  const paddedMonth = String(month + 1).padStart(2, "0");
+  const paddedDay = String(day).padStart(2, "0");
+  return `${year}-${paddedMonth}-${paddedDay}`;
+}
+
+function parseLegacyEvents(items: CalendarEvent[], fallbackDate: Date) {
+  return items.map((event) => {
+    if (typeof event.date === "number") {
+      return {
+        ...event,
+        date: formatDateKey(
+          fallbackDate.getFullYear(),
+          fallbackDate.getMonth(),
+          event.date
+        ),
+      };
+    }
+    if (typeof event.start === "number" && typeof event.end === "number") {
+      return {
+        ...event,
+        start: formatDateKey(
+          fallbackDate.getFullYear(),
+          fallbackDate.getMonth(),
+          event.start
+        ),
+        end: formatDateKey(
+          fallbackDate.getFullYear(),
+          fallbackDate.getMonth(),
+          event.end
+        ),
+      };
+    }
+    return event;
+  });
+}
 
 function dotColor(type: EventType) {
   switch (type) {
@@ -29,17 +66,23 @@ function dotColor(type: EventType) {
 }
 
 export default function Calendar() {
-  const [todayDate, setTodayDate] = useState(new Date().getDate());
-  const [selectedDate, setSelectedDate] = useState<number | null>(todayDate);
+  const today = new Date();
+  const [todayDate, setTodayDate] = useState(today.getDate());
+  const [selectedDate, setSelectedDate] = useState<number | null>(
+    today.getDate()
+  );
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [title, setTitle] = useState("");
   const [type, setType] = useState<EventType>("event");
-  const [tripEnd, setTripEnd] = useState<number>(todayDate);
+  const [tripEnd, setTripEnd] = useState<number>(today.getDate());
+  const [viewDate, setViewDate] = useState(
+    new Date(today.getFullYear(), today.getMonth(), 1)
+  );
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
-  const monthLabel = today.toLocaleString("en-US", { month: "long" });
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const monthLabel = viewDate.toLocaleString("en-US", { month: "long" });
 
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -49,24 +92,38 @@ export default function Calendar() {
 
   /* ---------- AUTO-FOCUS TODAY ---------- */
   useEffect(() => {
-    setSelectedDate(todayDate);
+    if (today.getMonth() === month && today.getFullYear() === year) {
+      setSelectedDate(todayDate);
+    }
 
     const interval = setInterval(() => {
       const now = new Date();
       const newDate = now.getDate();
       if (newDate !== todayDate) {
         setTodayDate(newDate);
-        setSelectedDate(newDate);
+        if (now.getMonth() === month && now.getFullYear() === year) {
+          setSelectedDate(newDate);
+        }
       }
     }, 60_000);
 
     return () => clearInterval(interval);
-  }, [todayDate]);
+  }, [month, year, today, todayDate]);
+
+  useEffect(() => {
+    setSelectedDate((prev) =>
+      prev ? Math.min(prev, daysInMonth) : Math.min(todayDate, daysInMonth)
+    );
+    setTripEnd((prev) => Math.min(prev, daysInMonth));
+  }, [daysInMonth, todayDate]);
 
   /* ---------- LOAD ---------- */
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) setEvents(JSON.parse(stored));
+    if (stored) {
+      const parsed = JSON.parse(stored) as CalendarEvent[];
+      setEvents(parseLegacyEvents(parsed, today));
+    }
   }, []);
 
   /* ---------- SAVE ---------- */
@@ -74,22 +131,29 @@ export default function Calendar() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
   }, [events]);
 
+  function shiftMonth(offset: number) {
+    setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + offset, 1));
+  }
+
   function eventsForDate(date: number) {
+    const dateKey = formatDateKey(year, month, date);
     return events.filter((e) => {
       if (e.type === "trip" && e.start && e.end) {
-        return date >= e.start && date <= e.end;
+        return dateKey >= e.start && dateKey <= e.end;
       }
-      return e.date === date;
+      return e.date === dateKey;
     });
   }
 
   function addEvent() {
     if (!selectedDate || !title.trim()) return;
+    const selectedKey = formatDateKey(year, month, selectedDate);
+    const tripEndKey = formatDateKey(year, month, tripEnd);
 
     if (type === "trip") {
       setEvents((prev) => [
         ...prev,
-        { type, title, start: selectedDate, end: tripEnd },
+        { type, title, start: selectedKey, end: tripEndKey },
       ]);
     } else {
       setEvents((prev) => [
@@ -97,7 +161,7 @@ export default function Calendar() {
         {
           type,
           title,
-          date: selectedDate,
+          date: selectedKey,
           completed: type === "todo" ? false : undefined,
         },
       ]);
@@ -120,14 +184,33 @@ export default function Calendar() {
 
   return (
     <div className="card">
-      <div className="section-title">
-        {monthLabel} {year}
+      <div className="section-title">Calendar</div>
+      <div className="month-header">
+        <button
+          type="button"
+          className="month-nav"
+          onClick={() => shiftMonth(-1)}
+          aria-label="Previous month"
+        >
+          ‹
+        </button>
+        <div className="month-label">
+          {monthLabel} {year}
+        </div>
+        <button
+          type="button"
+          className="month-nav"
+          onClick={() => shiftMonth(1)}
+          aria-label="Next month"
+        >
+          ›
+        </button>
       </div>
 
       {/* DAYS */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
+      <div className="calendar-days">
         {DAYS.map((day) => (
-          <div key={day} className="muted" style={{ fontSize: 12, textAlign: "center" }}>
+          <div key={day} className="calendar-day muted">
             {day}
           </div>
         ))}
@@ -135,87 +218,79 @@ export default function Calendar() {
 
       {/* DATES */}
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(7, 1fr)",
-          gap: 6,
-          marginTop: 8,
+        className="calendar-grid"
+        onTouchStart={(event) => setTouchStartX(event.touches[0]?.clientX ?? null)}
+        onTouchEnd={(event) => {
+          if (touchStartX === null) return;
+          const touchEndX = event.changedTouches[0]?.clientX ?? touchStartX;
+          const delta = touchStartX - touchEndX;
+          if (Math.abs(delta) > 50) {
+            shiftMonth(delta > 0 ? 1 : -1);
+          }
+          setTouchStartX(null);
         }}
       >
         {dates.map((date, index) => {
           if (!date) return <div key={index} />;
 
           const dayEvents = eventsForDate(date);
-          const isToday = date === todayDate;
+          const isToday =
+            date === todayDate &&
+            month === today.getMonth() &&
+            year === today.getFullYear();
 
           return (
-            <div
+            <button
               key={index}
+              type="button"
               onClick={() => setSelectedDate(date)}
-              style={{
-                height: 46,
-                borderRadius: 14,
-                background:
-                  date === selectedDate
-                    ? "#2a2a2a"
-                    : isToday
-                    ? "#1e1e1e"
-                    : "transparent",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-              }}
+              className={`calendar-cell${date === selectedDate ? " is-selected" : ""}${
+                isToday ? " is-today" : ""
+              }`}
             >
-              <div style={{ fontWeight: isToday ? "bold" : "normal" }}>
+              <span className="calendar-date" style={{ fontWeight: isToday ? "bold" : "normal" }}>
                 {date}
-              </div>
+              </span>
 
-              <div style={{ display: "flex", gap: 4, marginTop: 2 }}>
+              <span className="calendar-dots" aria-hidden>
                 {dayEvents.map((e, i) => (
                   <span
                     key={i}
+                    className="calendar-dot"
                     style={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: "50%",
                       background: dotColor(e.type),
                       opacity: e.type === "todo" && e.completed ? 0.3 : 1,
                     }}
                   />
                 ))}
-              </div>
-            </div>
+              </span>
+            </button>
           );
         })}
       </div>
 
       {/* DETAILS */}
       {selectedDate && (
-        <div style={{ marginTop: 16 }}>
+        <div className="calendar-details">
           <div className="section-title">Details</div>
 
           {selectedEvents.map((e, i) => (
             <div
               key={i}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                marginBottom: 6,
-                opacity: e.completed ? 0.5 : 1,
-              }}
+              className={`calendar-detail-row${e.type === "todo" ? " todo-row" : ""}${
+                e.completed ? " is-complete" : ""
+              }`}
             >
               {e.type === "todo" && (
                 <input
+                  className="todo-checkbox"
                   type="checkbox"
                   checked={!!e.completed}
                   onChange={() => toggleTodo(events.indexOf(e))}
                 />
               )}
 
-              <span style={{ textDecoration: e.completed ? "line-through" : "none" }}>
+              <span className="calendar-detail-text">
                 <span style={{ color: dotColor(e.type), marginRight: 6 }}>●</span>
                 {e.title}
               </span>

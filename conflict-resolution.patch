@@ -1,0 +1,195 @@
+*** Begin Patch
+*** Update File: app/components/TodayEvents.tsx
+@@
+ type EventType = "event" | "trip" | "todo";
+ 
+ type CalendarEvent = {
+   type: EventType;
+   title: string;
+-  date?: number;
+-  start?: number;
+-  end?: number;
++  date?: string;
++  start?: string;
++  end?: string;
+   completed?: boolean;
+ };
+@@
+ function normalizeEvents(items: CalendarEvent[], fallbackDate: Date) {
+   return items.map((event) => {
+-    if (typeof event.date === "number") {
++    if (typeof event.date === "number") {
+       return {
+         ...event,
+         date: formatDateKey(
+           new Date(
+             fallbackDate.getFullYear(),
+             fallbackDate.getMonth(),
+             event.date
+           )
+         ),
+       };
+     }
+-    if (typeof event.start === "number" && typeof event.end === "number") {
++    if (typeof event.start === "number" && typeof event.end === "number") {
+       return {
+         ...event,
+         start: formatDateKey(
+           new Date(
+             fallbackDate.getFullYear(),
+             fallbackDate.getMonth(),
+             event.start
+           )
+         ),
+         end: formatDateKey(
+           new Date(
+             fallbackDate.getFullYear(),
+             fallbackDate.getMonth(),
+             event.end
+           )
+         ),
+       };
+     }
+     return event;
+   });
+ }
+*** End Patch
+*** Begin Patch
+*** Update File: app/components/WeatherCard.tsx
+@@
+ const CODE_LABELS: Record<number, string> = {
+@@
+ };
++
++const CODE_ICONS: Record<number, string> = {
++  0: "☀️",
++  1: "🌤️",
++  2: "⛅",
++  3: "☁️",
++  45: "🌫️",
++  48: "🌫️",
++  51: "🌦️",
++  53: "🌦️",
++  55: "🌧️",
++  61: "🌧️",
++  63: "🌧️",
++  65: "🌧️",
++  71: "❄️",
++  80: "🌦️",
++};
+@@
+-          <div className="weather-main">
+-            <div>
+-              <p className="weather-temp">
+-                {Math.round(weather.current.temperature_2m)}°C
+-              </p>
+-              <p className="muted">
+-                {CODE_LABELS[weather.current.weather_code] ?? "Mixed"} · Feels
+-                like {Math.round(weather.current.apparent_temperature)}°C
+-              </p>
+-            </div>
+-            <div className="weather-meta">
+-              <span>High {Math.round(weather.daily?.temperature_2m_max?.[0] ?? 0)}°</span>
+-              <span>Low {Math.round(weather.daily?.temperature_2m_min?.[0] ?? 0)}°</span>
+-              <span>Wind {Math.round(weather.current.wind_speed_10m)} km/h</span>
+-            </div>
+-          </div>
+-          <div className="hourly-row">
++          <div className="weather-main compact">
++            <div className="weather-hero">
++              <span className="weather-icon" aria-hidden>
++                {CODE_ICONS[weather.current.weather_code] ?? "⛅"}
++              </span>
++              <div>
++                <p className="weather-temp">
++                  {Math.round(weather.current.temperature_2m)}°C
++                </p>
++                <p className="muted weather-summary">
++                  {CODE_LABELS[weather.current.weather_code] ?? "Mixed"} · Feels
++                  like {Math.round(weather.current.apparent_temperature)}°C
++                </p>
++              </div>
++            </div>
++            <div className="weather-meta compact">
++              <span className="weather-pill">↑ {Math.round(weather.daily?.temperature_2m_max?.[0] ?? 0)}°</span>
++              <span className="weather-pill">↓ {Math.round(weather.daily?.temperature_2m_min?.[0] ?? 0)}°</span>
++              <span className="weather-pill">💨 {Math.round(weather.current.wind_speed_10m)} km/h</span>
++            </div>
++          </div>
++          <div className="hourly-row compact">
+             {hourlyTemps.slice(0, 3).map((temp, index) => (
+               <div key={`${temp}-${index}`}>
+                 <p>{hourlyLabels[index]}</p>
+                 <strong>{Math.round(temp)}°</strong>
+               </div>
+             ))}
+           </div>
+*** End Patch
+*** Begin Patch
+*** Update File: app/globals.css
+@@
+ .weather-main {
+   display: flex;
+   justify-content: space-between;
+   gap: 16px;
+ }
++
++.weather-main.compact {
++  flex-direction: column;
++  gap: 12px;
++}
++
++.weather-hero {
++  display: flex;
++  gap: 12px;
++  align-items: center;
++}
++
++.weather-icon {
++  font-size: 2rem;
++  line-height: 1;
++}
+@@
+ .weather-meta {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 10px 14px;
+   font-size: 0.85rem;
+   color: #c3c3d0;
+ }
++
++.weather-meta.compact {
++  gap: 8px;
++}
++
++.weather-pill {
++  display: inline-flex;
++  align-items: center;
++  gap: 6px;
++  padding: 6px 10px;
++  border-radius: 999px;
++  background: rgba(255, 255, 255, 0.06);
++  color: #cbd5f5;
++  font-size: 0.75rem;
++}
++
++.weather-summary {
++  font-size: 0.9rem;
++}
+@@
+ .hourly-row {
+   margin-top: 16px;
+   display: grid;
+   grid-template-columns: repeat(4, 1fr);
+   gap: 10px;
+   text-align: center;
+   background: rgba(255, 255, 255, 0.04);
+   padding: 12px;
+   border-radius: 14px;
+ }
++
++.hourly-row.compact {
++  margin-top: 10px;
++  grid-template-columns: repeat(3, 1fr);
++}
+*** End Patch
