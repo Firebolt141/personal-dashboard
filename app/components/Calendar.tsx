@@ -280,19 +280,15 @@ export default function Calendar() {
 
       {/* DETAILS */}
       {selectedDate && (
-        <div style={{ marginTop: 16 }}>
+        <div className="calendar-details">
           <div className="section-title">Details</div>
 
           {selectedEvents.map((e, i) => (
             <div
               key={i}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                marginBottom: 6,
-                opacity: e.completed ? 0.5 : 1,
-              }}
+              className={`calendar-detail-row${e.type === "todo" ? " todo-row" : ""}${
+                e.completed ? " is-complete" : ""
+              }`}
             >
               {e.type === "todo" && (
                 <input
@@ -303,7 +299,7 @@ export default function Calendar() {
                 />
               )}
 
-              <span style={{ textDecoration: e.completed ? "line-through" : "none" }}>
+              <span className="calendar-detail-text">
                 <span style={{ color: dotColor(e.type), marginRight: 6 }}>●</span>
                 {e.title}
               </span>
