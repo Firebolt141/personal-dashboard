@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTH_RANGE = 12;
 
 type EventType = "event" | "trip" | "todo";
 
@@ -181,6 +182,14 @@ export default function Calendar() {
   }
 
   const selectedEvents = selectedDate ? eventsForDate(selectedDate) : [];
+  const monthOptions = useMemo(() => {
+    const options: Date[] = [];
+    const base = new Date(today.getFullYear(), today.getMonth(), 1);
+    for (let offset = -MONTH_RANGE; offset <= MONTH_RANGE; offset += 1) {
+      options.push(new Date(base.getFullYear(), base.getMonth() + offset, 1));
+    }
+    return options;
+  }, [today]);
 
   return (
     <div className="card">
