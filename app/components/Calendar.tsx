@@ -79,6 +79,7 @@ export default function Calendar() {
   const [viewDate, setViewDate] = useState(
     new Date(today.getFullYear(), today.getMonth(), 1)
   );
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
@@ -130,6 +131,10 @@ export default function Calendar() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
   }, [events]);
+
+  function shiftMonth(offset: number) {
+    setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + offset, 1));
+  }
 
   function eventsForDate(date: number) {
     const dateKey = formatDateKey(year, month, date);
@@ -189,34 +194,32 @@ export default function Calendar() {
   return (
     <div className="card">
       <div className="section-title">Calendar</div>
-      <div className="month-strip">
-        {monthOptions.map((option) => {
-          const isActive =
-            option.getFullYear() === year && option.getMonth() === month;
-          return (
-            <button
-              key={option.toISOString()}
-              type="button"
-              onClick={() => setViewDate(option)}
-              className={`month-chip${isActive ? " active" : ""}`}
-            >
-              {option.toLocaleString("en-US", {
-                month: "short",
-                year: "numeric",
-              })}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="month-label">
-        {monthLabel} {year}
+      <div className="month-header">
+        <button
+          type="button"
+          className="month-nav"
+          onClick={() => shiftMonth(-1)}
+          aria-label="Previous month"
+        >
+          ‹
+        </button>
+        <div className="month-label">
+          {monthLabel} {year}
+        </div>
+        <button
+          type="button"
+          className="month-nav"
+          onClick={() => shiftMonth(1)}
+          aria-label="Next month"
+        >
+          ›
+        </button>
       </div>
 
       {/* DAYS */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
+      <div className="calendar-days">
         {DAYS.map((day) => (
-          <div key={day} className="muted" style={{ fontSize: 12, textAlign: "center" }}>
+          <div key={day} className="calendar-day muted">
             {day}
           </div>
         ))}
@@ -224,11 +227,16 @@ export default function Calendar() {
 
       {/* DATES */}
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(7, 1fr)",
-          gap: 6,
-          marginTop: 8,
+        className="calendar-grid"
+        onTouchStart={(event) => setTouchStartX(event.touches[0]?.clientX ?? null)}
+        onTouchEnd={(event) => {
+          if (touchStartX === null) return;
+          const touchEndX = event.changedTouches[0]?.clientX ?? touchStartX;
+          const delta = touchStartX - touchEndX;
+          if (Math.abs(delta) > 50) {
+            shiftMonth(delta > 0 ? 1 : -1);
+          }
+          setTouchStartX(null);
         }}
       >
         {dates.map((date, index) => {
@@ -241,44 +249,31 @@ export default function Calendar() {
             year === today.getFullYear();
 
           return (
-            <div
+            <button
               key={index}
+              type="button"
               onClick={() => setSelectedDate(date)}
-              style={{
-                height: 46,
-                borderRadius: 14,
-                background:
-                  date === selectedDate
-                    ? "#2a2a2a"
-                    : isToday
-                    ? "#1e1e1e"
-                    : "transparent",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-              }}
+              className={`calendar-cell${date === selectedDate ? " is-selected" : ""}${
+                isToday ? " is-today" : ""
+              }`}
             >
-              <div style={{ fontWeight: isToday ? "bold" : "normal" }}>
+              <span className="calendar-date" style={{ fontWeight: isToday ? "bold" : "normal" }}>
                 {date}
-              </div>
+              </span>
 
-              <div style={{ display: "flex", gap: 4, marginTop: 2 }}>
+              <span className="calendar-dots" aria-hidden>
                 {dayEvents.map((e, i) => (
                   <span
                     key={i}
+                    className="calendar-dot"
                     style={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: "50%",
                       background: dotColor(e.type),
                       opacity: e.type === "todo" && e.completed ? 0.3 : 1,
                     }}
                   />
                 ))}
-              </div>
-            </div>
+              </span>
+            </button>
           );
         })}
       </div>
