@@ -38,6 +38,23 @@ const CODE_LABELS: Record<number, string> = {
   80: "Showers",
 };
 
+const CODE_ICONS: Record<number, string> = {
+  0: "☀️",
+  1: "🌤️",
+  2: "⛅",
+  3: "☁️",
+  45: "🌫️",
+  48: "🌫️",
+  51: "🌦️",
+  53: "🌦️",
+  55: "🌧️",
+  61: "🌧️",
+  63: "🌧️",
+  65: "🌧️",
+  71: "❄️",
+  80: "🌦️",
+};
+
 export default function WeatherCard() {
   const [weather, setWeather] = useState<WeatherResponse | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">(
@@ -77,7 +94,10 @@ export default function WeatherCard() {
     return weather.hourly.temperature_2m.slice(0, 4);
   }, [weather]);
 
-  const hourlyLabels = ["Now", "2 hrs", "4 hrs", "6 hrs"];
+  const hourlyLabels = ["Now", "+2h", "+4h"];
+  const icon = weather?.current
+    ? CODE_ICONS[weather.current.weather_code] ?? "⛅"
+    : "⛅";
 
   return (
     <div className="card">
@@ -90,29 +110,29 @@ export default function WeatherCard() {
       )}
       {status === "ready" && weather?.current && (
         <>
-          <div className="weather-main">
-            <div>
-              <p className="weather-temp">
-                {Math.round(weather.current.temperature_2m)}°C
-              </p>
-              <p className="muted">
-                {CODE_LABELS[weather.current.weather_code] ?? "Mixed"} · Feels
-                like {Math.round(weather.current.apparent_temperature)}°C
-              </p>
-              <div className="weather-meta">
-                <span>
-                  High {Math.round(weather.daily?.temperature_2m_max?.[0] ?? 0)}°
-                </span>
-                <span>
-                  Low {Math.round(weather.daily?.temperature_2m_min?.[0] ?? 0)}°
-                </span>
-                <span>Wind {Math.round(weather.current.wind_speed_10m)} km/h</span>
+          <div className="weather-main compact">
+            <div className="weather-hero">
+              <span className="weather-icon" aria-hidden>
+                {icon}
+              </span>
+              <div>
+                <p className="weather-temp">
+                  {Math.round(weather.current.temperature_2m)}°C
+                </p>
+                <p className="muted weather-summary">
+                  {CODE_LABELS[weather.current.weather_code] ?? "Mixed"} · Feels
+                  like {Math.round(weather.current.apparent_temperature)}°C
+                </p>
               </div>
             </div>
-            <div className="weather-pill">Otsuka, Bunkyo-ku</div>
+            <div className="weather-meta compact">
+              <span className="weather-pill">↑ {Math.round(weather.daily?.temperature_2m_max?.[0] ?? 0)}°</span>
+              <span className="weather-pill">↓ {Math.round(weather.daily?.temperature_2m_min?.[0] ?? 0)}°</span>
+              <span className="weather-pill">💨 {Math.round(weather.current.wind_speed_10m)} km/h</span>
+            </div>
           </div>
-          <div className="hourly-row">
-            {hourlyTemps.map((temp, index) => (
+          <div className="hourly-row compact">
+            {hourlyTemps.slice(0, 3).map((temp, index) => (
               <div key={`${temp}-${index}`}>
                 <p>{hourlyLabels[index]}</p>
                 <strong>{Math.round(temp)}°</strong>

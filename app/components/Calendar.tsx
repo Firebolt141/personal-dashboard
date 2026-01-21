@@ -1,21 +1,59 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTH_RANGE = 12;
 
 type EventType = "event" | "trip" | "todo";
 
 type CalendarEvent = {
   type: EventType;
   title: string;
-  date?: number;
-  start?: number;
-  end?: number;
+  date?: string;
+  start?: string;
+  end?: string;
   completed?: boolean;
 };
 
 const STORAGE_KEY = "personal-dashboard-events";
+
+function formatDateKey(year: number, month: number, day: number) {
+  const paddedMonth = String(month + 1).padStart(2, "0");
+  const paddedDay = String(day).padStart(2, "0");
+  return `${year}-${paddedMonth}-${paddedDay}`;
+}
+
+function parseLegacyEvents(items: CalendarEvent[], fallbackDate: Date) {
+  return items.map((event) => {
+    if (typeof event.date === "number") {
+      return {
+        ...event,
+        date: formatDateKey(
+          fallbackDate.getFullYear(),
+          fallbackDate.getMonth(),
+          event.date
+        ),
+      };
+    }
+    if (typeof event.start === "number" && typeof event.end === "number") {
+      return {
+        ...event,
+        start: formatDateKey(
+          fallbackDate.getFullYear(),
+          fallbackDate.getMonth(),
+          event.start
+        ),
+        end: formatDateKey(
+          fallbackDate.getFullYear(),
+          fallbackDate.getMonth(),
+          event.end
+        ),
+      };
+    }
+    return event;
+  });
+}
 
 function dotColor(type: EventType) {
   switch (type) {
@@ -29,17 +67,22 @@ function dotColor(type: EventType) {
 }
 
 export default function Calendar() {
-  const [todayDate, setTodayDate] = useState(new Date().getDate());
-  const [selectedDate, setSelectedDate] = useState<number | null>(todayDate);
+  const today = new Date();
+  const [todayDate, setTodayDate] = useState(today.getDate());
+  const [selectedDate, setSelectedDate] = useState<number | null>(
+    today.getDate()
+  );
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [title, setTitle] = useState("");
   const [type, setType] = useState<EventType>("event");
-  const [tripEnd, setTripEnd] = useState<number>(todayDate);
+  const [tripEnd, setTripEnd] = useState<number>(today.getDate());
+  const [viewDate, setViewDate] = useState(
+    new Date(today.getFullYear(), today.getMonth(), 1)
+  );
 
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
-  const monthLabel = today.toLocaleString("en-US", { month: "long" });
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const monthLabel = viewDate.toLocaleString("en-US", { month: "long" });
 
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -49,24 +92,38 @@ export default function Calendar() {
 
   /* ---------- AUTO-FOCUS TODAY ---------- */
   useEffect(() => {
-    setSelectedDate(todayDate);
+    if (today.getMonth() === month && today.getFullYear() === year) {
+      setSelectedDate(todayDate);
+    }
 
     const interval = setInterval(() => {
       const now = new Date();
       const newDate = now.getDate();
       if (newDate !== todayDate) {
         setTodayDate(newDate);
-        setSelectedDate(newDate);
+        if (now.getMonth() === month && now.getFullYear() === year) {
+          setSelectedDate(newDate);
+        }
       }
     }, 60_000);
 
     return () => clearInterval(interval);
-  }, [todayDate]);
+  }, [month, year, today, todayDate]);
+
+  useEffect(() => {
+    setSelectedDate((prev) =>
+      prev ? Math.min(prev, daysInMonth) : Math.min(todayDate, daysInMonth)
+    );
+    setTripEnd((prev) => Math.min(prev, daysInMonth));
+  }, [daysInMonth, todayDate]);
 
   /* ---------- LOAD ---------- */
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) setEvents(JSON.parse(stored));
+    if (stored) {
+      const parsed = JSON.parse(stored) as CalendarEvent[];
+      setEvents(parseLegacyEvents(parsed, today));
+    }
   }, []);
 
   /* ---------- SAVE ---------- */
@@ -75,21 +132,24 @@ export default function Calendar() {
   }, [events]);
 
   function eventsForDate(date: number) {
+    const dateKey = formatDateKey(year, month, date);
     return events.filter((e) => {
       if (e.type === "trip" && e.start && e.end) {
-        return date >= e.start && date <= e.end;
+        return dateKey >= e.start && dateKey <= e.end;
       }
-      return e.date === date;
+      return e.date === dateKey;
     });
   }
 
   function addEvent() {
     if (!selectedDate || !title.trim()) return;
+    const selectedKey = formatDateKey(year, month, selectedDate);
+    const tripEndKey = formatDateKey(year, month, tripEnd);
 
     if (type === "trip") {
       setEvents((prev) => [
         ...prev,
-        { type, title, start: selectedDate, end: tripEnd },
+        { type, title, start: selectedKey, end: tripEndKey },
       ]);
     } else {
       setEvents((prev) => [
@@ -97,7 +157,7 @@ export default function Calendar() {
         {
           type,
           title,
-          date: selectedDate,
+          date: selectedKey,
           completed: type === "todo" ? false : undefined,
         },
       ]);
@@ -117,10 +177,39 @@ export default function Calendar() {
   }
 
   const selectedEvents = selectedDate ? eventsForDate(selectedDate) : [];
+  const monthOptions = useMemo(() => {
+    const options: Date[] = [];
+    const base = new Date(today.getFullYear(), today.getMonth(), 1);
+    for (let offset = -MONTH_RANGE; offset <= MONTH_RANGE; offset += 1) {
+      options.push(new Date(base.getFullYear(), base.getMonth() + offset, 1));
+    }
+    return options;
+  }, [today]);
 
   return (
     <div className="card">
-      <div className="section-title">
+      <div className="section-title">Calendar</div>
+      <div className="month-strip">
+        {monthOptions.map((option) => {
+          const isActive =
+            option.getFullYear() === year && option.getMonth() === month;
+          return (
+            <button
+              key={option.toISOString()}
+              type="button"
+              onClick={() => setViewDate(option)}
+              className={`month-chip${isActive ? " active" : ""}`}
+            >
+              {option.toLocaleString("en-US", {
+                month: "short",
+                year: "numeric",
+              })}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="month-label">
         {monthLabel} {year}
       </div>
 
@@ -146,7 +235,10 @@ export default function Calendar() {
           if (!date) return <div key={index} />;
 
           const dayEvents = eventsForDate(date);
-          const isToday = date === todayDate;
+          const isToday =
+            date === todayDate &&
+            month === today.getMonth() &&
+            year === today.getFullYear();
 
           return (
             <div
@@ -209,6 +301,7 @@ export default function Calendar() {
             >
               {e.type === "todo" && (
                 <input
+                  className="todo-checkbox"
                   type="checkbox"
                   checked={!!e.completed}
                   onChange={() => toggleTodo(events.indexOf(e))}
