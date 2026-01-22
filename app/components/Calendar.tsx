@@ -323,14 +323,6 @@ export default function Calendar() {
               )}
 
               <span className="calendar-detail-text">
-                <span
-                  style={{
-                    color: dotColor(event.type, event.completed),
-                    marginRight: 6,
-                  }}
-                >
-                  ●
-                </span>
                 {event.title}
               </span>
               <button
