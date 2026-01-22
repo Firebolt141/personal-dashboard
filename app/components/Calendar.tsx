@@ -55,14 +55,14 @@ function parseLegacyEvents(items: CalendarEvent[], fallbackDate: Date) {
   });
 }
 
-function dotColor(type: EventType) {
+function dotColor(type: EventType, completed?: boolean) {
   switch (type) {
     case "event":
       return "#3b82f6";
     case "trip":
       return "#a855f7";
     case "todo":
-      return "#22c55e";
+      return completed ? "#22c55e" : "#f87171";
   }
 }
 
@@ -149,6 +149,21 @@ export default function Calendar() {
       }
       return e.date === dateKey;
     });
+  }
+
+  function dotsForDate(date: number) {
+    const dateEvents = eventsForDate(date);
+    const hasEvent = dateEvents.some((event) => event.type === "event");
+    const hasTrip = dateEvents.some((event) => event.type === "trip");
+    const todos = dateEvents.filter((event) => event.type === "todo");
+    const hasTodo = todos.length > 0;
+    const todoCompleted = hasTodo && todos.every((todo) => !!todo.completed);
+
+    return [
+      hasEvent && { key: "event", color: dotColor("event") },
+      hasTrip && { key: "trip", color: dotColor("trip") },
+      hasTodo && { key: "todo", color: dotColor("todo", todoCompleted) },
+    ].filter(Boolean) as { key: EventType; color: string }[];
   }
 
   function addEvent() {
@@ -253,7 +268,7 @@ export default function Calendar() {
         {dates.map((date, index) => {
           if (!date) return <div key={index} />;
 
-          const dayEvents = eventsForDate(date);
+          const dayDots = dotsForDate(date);
           const isToday =
             date === todayDate &&
             month === today.getMonth() &&
@@ -273,14 +288,11 @@ export default function Calendar() {
               </span>
 
               <span className="calendar-dots" aria-hidden>
-                {dayEvents.map((e, i) => (
+                {dayDots.map((dot) => (
                   <span
-                    key={i}
+                    key={dot.key}
                     className="calendar-dot"
-                    style={{
-                      background: dotColor(e.type),
-                      opacity: e.type === "todo" && e.completed ? 0.3 : 1,
-                    }}
+                    style={{ background: dot.color }}
                   />
                 ))}
               </span>
@@ -311,7 +323,14 @@ export default function Calendar() {
               )}
 
               <span className="calendar-detail-text">
-                <span style={{ color: dotColor(event.type), marginRight: 6 }}>●</span>
+                <span
+                  style={{
+                    color: dotColor(event.type, event.completed),
+                    marginRight: 6,
+                  }}
+                >
+                  ●
+                </span>
                 {event.title}
               </span>
               <button

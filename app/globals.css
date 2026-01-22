@@ -240,6 +240,11 @@ h3 {
 }
 
 .badge-todo {
+  background: rgba(248, 113, 113, 0.18);
+  color: #fca5a5;
+}
+
+.badge-todo.complete {
   background: rgba(34, 197, 94, 0.18);
   color: #86efac;
 }

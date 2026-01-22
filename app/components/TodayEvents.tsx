@@ -58,14 +58,14 @@ function normalizeEvents(items: CalendarEvent[], fallbackDate: Date) {
   });
 }
 
-function badgeColor(type: EventType) {
+function badgeColor(type: EventType, completed?: boolean) {
   switch (type) {
     case "event":
       return "badge badge-event";
     case "trip":
       return "badge badge-trip";
     case "todo":
-      return "badge badge-todo";
+      return `badge badge-todo${completed ? " complete" : ""}`;
   }
 }
 
@@ -110,7 +110,9 @@ export default function TodayEvents() {
     <ul className="today-list">
       {todaysEvents.map((event, index) => (
         <li key={`${event.title}-${index}`} className="today-item">
-          <span className={badgeColor(event.type)}>{event.type}</span>
+          <span className={badgeColor(event.type, event.completed)}>
+            {event.type}
+          </span>
           <span className={event.completed ? "is-complete" : undefined}>
             {event.title}
           </span>
