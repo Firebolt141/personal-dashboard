@@ -86,10 +86,18 @@ export default function TodayEvents() {
     loadEvents();
 
     const handleUpdate = () => loadEvents();
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === STORAGE_KEY) {
+        loadEvents();
+      }
+    };
+
     window.addEventListener("events-updated", handleUpdate);
+    window.addEventListener("storage", handleStorage);
 
     return () => {
       window.removeEventListener("events-updated", handleUpdate);
+      window.removeEventListener("storage", handleStorage);
     };
   }, []);
 

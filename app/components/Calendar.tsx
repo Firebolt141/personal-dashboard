@@ -93,18 +93,19 @@ export default function Calendar() {
 
   /* ---------- AUTO-FOCUS TODAY ---------- */
   useEffect(() => {
-    if (selectedDate === null && today.getMonth() === month && today.getFullYear() === year) {
+    const now = new Date();
+    if (selectedDate === null && now.getMonth() === month && now.getFullYear() === year) {
       setSelectedDate(todayDate);
     }
 
     const interval = setInterval(() => {
-      const now = new Date();
-      const newDate = now.getDate();
+      const current = new Date();
+      const newDate = current.getDate();
       if (newDate !== todayDate) {
         setTodayDate(newDate);
         if (
-          now.getMonth() === month &&
-          now.getFullYear() === year &&
+          current.getMonth() === month &&
+          current.getFullYear() === year &&
           selectedDate === todayDate
         ) {
           setSelectedDate(newDate);
@@ -113,7 +114,7 @@ export default function Calendar() {
     }, 60_000);
 
     return () => clearInterval(interval);
-  }, [month, year, today, todayDate, selectedDate]);
+  }, [month, year, todayDate, selectedDate]);
 
   useEffect(() => {
     setSelectedDate((prev) =>
