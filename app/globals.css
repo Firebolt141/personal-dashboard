@@ -363,6 +363,17 @@ h3 {
   color: #f5f5f7;
 }
 
+.detail-delete {
+  margin-left: auto;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fca5a5;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
 .todo-checkbox {
   appearance: none;
   width: 16px;

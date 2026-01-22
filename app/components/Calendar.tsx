@@ -93,7 +93,7 @@ export default function Calendar() {
 
   /* ---------- AUTO-FOCUS TODAY ---------- */
   useEffect(() => {
-    if (today.getMonth() === month && today.getFullYear() === year) {
+    if (selectedDate === null && today.getMonth() === month && today.getFullYear() === year) {
       setSelectedDate(todayDate);
     }
 
@@ -102,14 +102,18 @@ export default function Calendar() {
       const newDate = now.getDate();
       if (newDate !== todayDate) {
         setTodayDate(newDate);
-        if (now.getMonth() === month && now.getFullYear() === year) {
+        if (
+          now.getMonth() === month &&
+          now.getFullYear() === year &&
+          selectedDate === todayDate
+        ) {
           setSelectedDate(newDate);
         }
       }
     }, 60_000);
 
     return () => clearInterval(interval);
-  }, [month, year, today, todayDate]);
+  }, [month, year, today, todayDate, selectedDate]);
 
   useEffect(() => {
     setSelectedDate((prev) =>
@@ -130,6 +134,7 @@ export default function Calendar() {
   /* ---------- SAVE ---------- */
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+    window.dispatchEvent(new Event("events-updated"));
   }, [events]);
 
   function shiftMonth(offset: number) {
@@ -181,15 +186,21 @@ export default function Calendar() {
     );
   }
 
-  const selectedEvents = selectedDate ? eventsForDate(selectedDate) : [];
-  const monthOptions = useMemo(() => {
-    const options: Date[] = [];
-    const base = new Date(today.getFullYear(), today.getMonth(), 1);
-    for (let offset = -MONTH_RANGE; offset <= MONTH_RANGE; offset += 1) {
-      options.push(new Date(base.getFullYear(), base.getMonth() + offset, 1));
-    }
-    return options;
-  }, [today]);
+  const selectedEvents = selectedDate
+    ? events
+        .map((event, index) => ({ event, index }))
+        .filter(({ event }) => {
+          if (event.type === "trip" && event.start && event.end) {
+            const dateKey = formatDateKey(year, month, selectedDate);
+            return dateKey >= event.start && dateKey <= event.end;
+          }
+          return event.date === formatDateKey(year, month, selectedDate);
+        })
+    : [];
+
+  function deleteEvent(index: number) {
+    setEvents((prev) => prev.filter((_, i) => i !== index));
+  }
 
   return (
     <div className="card">
@@ -283,26 +294,34 @@ export default function Calendar() {
         <div className="calendar-details">
           <div className="section-title">Details</div>
 
-          {selectedEvents.map((e, i) => (
+          {selectedEvents.map(({ event, index }) => (
             <div
-              key={i}
-              className={`calendar-detail-row${e.type === "todo" ? " todo-row" : ""}${
-                e.completed ? " is-complete" : ""
-              }`}
+              key={`${event.title}-${index}`}
+              className={`calendar-detail-row${
+                event.type === "todo" ? " todo-row" : ""
+              }${event.completed ? " is-complete" : ""}`}
             >
-              {e.type === "todo" && (
+              {event.type === "todo" && (
                 <input
                   className="todo-checkbox"
                   type="checkbox"
-                  checked={!!e.completed}
-                  onChange={() => toggleTodo(events.indexOf(e))}
+                  checked={!!event.completed}
+                  onChange={() => toggleTodo(index)}
                 />
               )}
 
               <span className="calendar-detail-text">
-                <span style={{ color: dotColor(e.type), marginRight: 6 }}>●</span>
-                {e.title}
+                <span style={{ color: dotColor(event.type), marginRight: 6 }}>●</span>
+                {event.title}
               </span>
+              <button
+                type="button"
+                className="detail-delete"
+                onClick={() => deleteEvent(index)}
+                aria-label={`Delete ${event.title}`}
+              >
+                ✕
+              </button>
             </div>
           ))}
 

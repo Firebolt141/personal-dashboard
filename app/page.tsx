@@ -17,7 +17,7 @@ export default function Home() {
         <div className="hero-header">
           <div>
             <p className="muted">{dateLabel}</p>
-            <h1>Good afternoon, Traveler</h1>
+            <h1>Good afternoon, Firebolt141</h1>
             <p className="muted">
               Rest here, soldier. Take in the warmth before the next fight.
             </p>

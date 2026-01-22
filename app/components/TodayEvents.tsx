@@ -75,11 +75,22 @@ export default function TodayEvents() {
   const todayKey = formatDateKey(today);
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored) as CalendarEvent[];
-      setEvents(normalizeEvents(parsed, today));
-    }
+    const loadEvents = () => {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as CalendarEvent[];
+        setEvents(normalizeEvents(parsed, today));
+      }
+    };
+
+    loadEvents();
+
+    const handleUpdate = () => loadEvents();
+    window.addEventListener("events-updated", handleUpdate);
+
+    return () => {
+      window.removeEventListener("events-updated", handleUpdate);
+    };
   }, []);
 
   const todaysEvents = useMemo(() => {
