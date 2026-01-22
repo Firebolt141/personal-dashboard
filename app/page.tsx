@@ -1,4 +1,5 @@
 import Calendar from "./components/Calendar";
+import GrowthGarden from "./components/GrowthGarden";
 import TodayEvents from "./components/TodayEvents";
 import WeatherCard from "./components/WeatherCard";
 
@@ -33,6 +34,8 @@ export default function Home() {
         <div className="section-title">Today</div>
         <TodayEvents />
       </section>
+
+      <GrowthGarden />
 
       <WeatherCard />
 
