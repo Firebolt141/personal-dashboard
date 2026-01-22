@@ -312,6 +312,7 @@ export default function Calendar() {
               className={`calendar-detail-row${
                 event.type === "todo" ? " todo-row" : ""
               }${event.completed ? " is-complete" : ""}`}
+              onClick={event.type === "todo" ? () => toggleTodo(index) : undefined}
             >
               <span className={`detail-type detail-type-${event.type}`}>
                 {event.type === "event" && "📌"}
@@ -319,22 +320,16 @@ export default function Calendar() {
                 {event.type === "todo" && "✅"}
                 <span className="detail-type-label">{event.type}</span>
               </span>
-              {event.type === "todo" && (
-                <input
-                  className="todo-checkbox"
-                  type="checkbox"
-                  checked={!!event.completed}
-                  onChange={() => toggleTodo(index)}
-                />
-              )}
-
               <span className="calendar-detail-text">
                 {event.title}
               </span>
               <button
                 type="button"
                 className="detail-delete"
-                onClick={() => deleteEvent(index)}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  deleteEvent(index);
+                }}
                 aria-label={`Delete ${event.title}`}
               >
                 ✕
