@@ -313,6 +313,12 @@ export default function Calendar() {
                 event.type === "todo" ? " todo-row" : ""
               }${event.completed ? " is-complete" : ""}`}
             >
+              <span className={`detail-type detail-type-${event.type}`}>
+                {event.type === "event" && "📌"}
+                {event.type === "trip" && "🧭"}
+                {event.type === "todo" && "✅"}
+                <span className="detail-type-label">{event.type}</span>
+              </span>
               {event.type === "todo" && (
                 <input
                   className="todo-checkbox"
