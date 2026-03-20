@@ -1,4 +1,5 @@
 import "./globals.css";
+import ClientWrapper from "./components/ClientWrapper";
 
 export const metadata = {
   title: "Personal Dashboard",
@@ -13,9 +14,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <div className="app-container">
+        <ClientWrapper>
           {children}
-        </div>
+        </ClientWrapper>
       </body>
     </html>
   );
