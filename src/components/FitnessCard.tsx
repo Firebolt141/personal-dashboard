@@ -1,49 +1,42 @@
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Footprints, Flame, Timer, Heart } from 'lucide-react'
+import { Footprints, Flame, Timer, Heart, TrendingUp } from 'lucide-react'
 import { generateFitnessData } from '../utils/fitnessData'
 
-function RingProgress({ value, max, size, strokeWidth, color, children }: {
-  value: number
-  max: number
-  size: number
-  strokeWidth: number
-  color: string
-  children?: React.ReactNode
+function Ring({ value, max, size, stroke, color }: {
+  value: number; max: number; size: number; stroke: number; color: string
 }) {
-  const radius = (size - strokeWidth) / 2
-  const circumference = radius * 2 * Math.PI
+  const r = (size - stroke) / 2
+  const circ = r * 2 * Math.PI
   const progress = Math.min(value / max, 1)
-  const offset = circumference - progress * circumference
-
   return (
-    <div className="relative" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="rgba(255,255,255,0.05)"
-          strokeWidth={strokeWidth}
-        />
-        <motion.circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke={color}
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          initial={{ strokeDashoffset: circumference }}
-          animate={{ strokeDashoffset: offset }}
-          transition={{ duration: 1.5, delay: 0.3, ease: 'easeOut' }}
-          style={{ filter: `drop-shadow(0 0 4px ${color})` }}
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        {children}
+    <svg width={size} height={size} className="-rotate-90">
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--color-surface-3)" strokeWidth={stroke} />
+      <motion.circle
+        cx={size / 2} cy={size / 2} r={r} fill="none"
+        stroke={color} strokeWidth={stroke} strokeLinecap="round"
+        strokeDasharray={circ}
+        initial={{ strokeDashoffset: circ }}
+        animate={{ strokeDashoffset: circ - progress * circ }}
+        transition={{ duration: 1.2, delay: 0.2, ease: 'easeOut' }}
+      />
+    </svg>
+  )
+}
+
+function Stat({ icon: Icon, label, value, unit, color }: {
+  icon: typeof Flame; label: string; value: string; unit?: string; color: string
+}) {
+  return (
+    <div className="flex items-center gap-2.5">
+      <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: `${color}12` }}>
+        <Icon size={13} style={{ color }} />
+      </div>
+      <div>
+        <div className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider">{label}</div>
+        <div className="text-sm font-semibold text-[var(--color-text)]">
+          {value}{unit && <span className="text-[var(--color-text-muted)] text-xs font-normal ml-0.5">{unit}</span>}
+        </div>
       </div>
     </div>
   )
@@ -51,124 +44,87 @@ function RingProgress({ value, max, size, strokeWidth, color, children }: {
 
 export default function FitnessCard() {
   const data = useMemo(() => generateFitnessData(), [])
-  const maxWeeklySteps = Math.max(...data.weeklySteps.map(d => d.steps), 1)
+  const maxSteps = Math.max(...data.weeklySteps.map(d => d.steps), 1)
+  const stepsPercent = Math.round((data.steps / data.stepGoal) * 100)
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.3 }}
-      className="neon-card rounded-xl overflow-hidden"
+      transition={{ duration: 0.4, delay: 0.15 }}
+      className="card rounded-xl overflow-hidden"
     >
-      {/* Header */}
-      <div className="p-3 border-b border-white/[0.04] flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-neon-green)]" style={{ boxShadow: '0 0 6px #39ff14' }} />
-          <span className="text-xs font-bold text-white tracking-wide">FITNESS</span>
+      <div className="px-4 py-3 flex items-center justify-between border-b border-[var(--color-border)]">
+        <div className="flex items-center gap-2">
+          <TrendingUp size={13} className="text-[var(--color-green)]" />
+          <span className="text-xs font-medium text-[var(--color-text)]">Activity</span>
         </div>
-        <span className="text-[9px] font-mono text-gray-500 uppercase">Google Fit</span>
+        <span className="text-[10px] text-[var(--color-text-faint)]">Today</span>
       </div>
 
       <div className="p-4">
-        {/* Main ring + stats */}
-        <div className="flex items-center gap-4">
-          {/* Steps ring */}
-          <RingProgress
-            value={data.steps}
-            max={data.stepGoal}
-            size={88}
-            strokeWidth={6}
-            color="#39ff14"
-          >
-            <div className="text-center">
-              <Footprints size={14} className="mx-auto mb-0.5 text-[var(--color-neon-green)]" />
-              <div className="text-sm font-bold text-white font-mono leading-none">
-                {data.steps.toLocaleString()}
-              </div>
-              <div className="text-[8px] text-gray-500 mt-0.5">
-                / {(data.stepGoal / 1000).toFixed(0)}k
-              </div>
+        {/* Steps ring + number */}
+        <div className="flex items-center gap-4 mb-4">
+          <div className="relative">
+            <Ring value={data.steps} max={data.stepGoal} size={72} stroke={5} color="var(--color-green)" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-base font-bold text-[var(--color-text)] font-mono leading-none">
+                {(data.steps / 1000).toFixed(1)}k
+              </span>
+              <span className="text-[8px] text-[var(--color-text-muted)] mt-0.5">steps</span>
             </div>
-          </RingProgress>
+          </div>
 
-          {/* Right side stats */}
-          <div className="flex-1 grid grid-cols-2 gap-2">
-            <div className="bg-white/[0.03] rounded-lg p-2 border border-white/[0.04]">
-              <div className="flex items-center gap-1 mb-1">
-                <Flame size={10} className="text-[var(--color-accent-rose)]" />
-                <span className="text-[9px] text-gray-500 uppercase">Cal</span>
-              </div>
-              <div className="text-sm font-bold text-white font-mono">{data.calories}</div>
-              <div className="w-full h-0.5 rounded-full bg-white/[0.05] mt-1">
-                <motion.div
-                  className="h-full rounded-full bg-[var(--color-accent-rose)]"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${Math.min((data.calories / data.calorieGoal) * 100, 100)}%` }}
-                  transition={{ duration: 1, delay: 0.5 }}
-                  style={{ boxShadow: '0 0 4px rgba(251, 113, 133, 0.5)' }}
-                />
-              </div>
-            </div>
-
-            <div className="bg-white/[0.03] rounded-lg p-2 border border-white/[0.04]">
-              <div className="flex items-center gap-1 mb-1">
-                <Timer size={10} className="text-[var(--color-neon-blue)]" />
-                <span className="text-[9px] text-gray-500 uppercase">Active</span>
-              </div>
-              <div className="text-sm font-bold text-white font-mono">{data.activeMinutes}m</div>
-              <div className="w-full h-0.5 rounded-full bg-white/[0.05] mt-1">
-                <motion.div
-                  className="h-full rounded-full bg-[var(--color-neon-blue)]"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${Math.min((data.activeMinutes / data.activeMinuteGoal) * 100, 100)}%` }}
-                  transition={{ duration: 1, delay: 0.6 }}
-                  style={{ boxShadow: '0 0 4px rgba(0, 212, 255, 0.5)' }}
-                />
-              </div>
-            </div>
-
-            <div className="bg-white/[0.03] rounded-lg p-2 border border-white/[0.04]">
-              <div className="flex items-center gap-1 mb-1">
-                <Footprints size={10} className="text-[var(--color-neon-green)]" />
-                <span className="text-[9px] text-gray-500 uppercase">Dist</span>
-              </div>
-              <div className="text-sm font-bold text-white font-mono">{data.distance} km</div>
-            </div>
-
-            <div className="bg-white/[0.03] rounded-lg p-2 border border-white/[0.04]">
-              <div className="flex items-center gap-1 mb-1">
-                <Heart size={10} className="text-[var(--color-neon-pink)]" />
-                <span className="text-[9px] text-gray-500 uppercase">BPM</span>
-              </div>
-              <div className="text-sm font-bold text-white font-mono">{data.heartRate}</div>
-            </div>
+          <div className="flex-1 space-y-2.5">
+            <Stat icon={Flame} label="Calories" value={String(data.calories)} unit="kcal" color="var(--color-rose)" />
+            <Stat icon={Timer} label="Active" value={String(data.activeMinutes)} unit="min" color="var(--color-accent)" />
           </div>
         </div>
 
-        {/* Weekly steps bar chart */}
-        <div className="mt-4">
-          <div className="text-[9px] text-gray-500 uppercase tracking-wider mb-2">This Week</div>
-          <div className="flex items-end gap-1.5 h-12">
+        {/* Secondary stats */}
+        <div className="flex gap-3 mb-4">
+          <div className="flex-1 card-inner rounded-lg px-3 py-2">
+            <div className="flex items-center gap-1.5">
+              <Footprints size={11} className="text-[var(--color-green)]" />
+              <span className="text-[10px] text-[var(--color-text-muted)]">Distance</span>
+            </div>
+            <div className="text-sm font-semibold mt-0.5 font-mono">{data.distance} km</div>
+          </div>
+          <div className="flex-1 card-inner rounded-lg px-3 py-2">
+            <div className="flex items-center gap-1.5">
+              <Heart size={11} className="text-[var(--color-rose)]" />
+              <span className="text-[10px] text-[var(--color-text-muted)]">Heart Rate</span>
+            </div>
+            <div className="text-sm font-semibold mt-0.5 font-mono">{data.heartRate} bpm</div>
+          </div>
+          <div className="flex-1 card-inner rounded-lg px-3 py-2">
+            <div className="flex items-center gap-1.5">
+              <Target size={11} className="text-[var(--color-amber)]" />
+              <span className="text-[10px] text-[var(--color-text-muted)]">Goal</span>
+            </div>
+            <div className="text-sm font-semibold mt-0.5 font-mono">{stepsPercent}%</div>
+          </div>
+        </div>
+
+        {/* Weekly bar chart */}
+        <div>
+          <div className="text-[10px] text-[var(--color-text-muted)] mb-2">This week</div>
+          <div className="flex items-end gap-1 h-10">
             {data.weeklySteps.map((d, i) => {
-              const height = d.steps > 0 ? Math.max((d.steps / maxWeeklySteps) * 100, 8) : 4
+              const h = d.steps > 0 ? Math.max((d.steps / maxSteps) * 100, 6) : 3
               const isToday = i === (new Date().getDay() + 6) % 7
               return (
                 <div key={d.day} className="flex-1 flex flex-col items-center gap-1">
                   <motion.div
                     initial={{ height: 0 }}
-                    animate={{ height: `${height}%` }}
-                    transition={{ duration: 0.8, delay: 0.5 + i * 0.08 }}
+                    animate={{ height: `${h}%` }}
+                    transition={{ duration: 0.6, delay: 0.4 + i * 0.06 }}
                     className="w-full rounded-sm"
                     style={{
-                      background: isToday
-                        ? 'linear-gradient(to top, #39ff14, #22d3ee)'
-                        : d.steps > 0
-                        ? 'rgba(57, 255, 20, 0.25)'
-                        : 'rgba(255,255,255,0.03)',
-                      boxShadow: isToday ? '0 0 6px rgba(57, 255, 20, 0.3)' : undefined,
+                      background: isToday ? 'var(--color-green)' : d.steps > 0 ? 'var(--color-surface-3)' : 'var(--color-surface-2)',
                     }}
                   />
-                  <span className={`text-[8px] font-mono ${isToday ? 'text-[var(--color-neon-green)]' : 'text-gray-600'}`}>
+                  <span className={`text-[8px] ${isToday ? 'text-[var(--color-green)] font-medium' : 'text-[var(--color-text-faint)]'}`}>
                     {d.day[0]}
                   </span>
                 </div>
@@ -178,5 +134,13 @@ export default function FitnessCard() {
         </div>
       </div>
     </motion.div>
+  )
+}
+
+function Target({ size, className }: { size: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" />
+    </svg>
   )
 }
