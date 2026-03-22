@@ -20,10 +20,12 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -31,52 +33,58 @@ body {
   background: var(--color-bg);
   color: #e2e8f0;
   min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  overscroll-behavior-y: contain;
 }
 
-/* Custom scrollbar */
+/* Hide scrollbar on mobile for cleaner look */
 ::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--color-bg);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--color-surface-lighter);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-primary);
+  width: 0;
+  height: 0;
 }
 
 /* Glass morphism utility */
 .glass {
-  background: rgba(26, 26, 46, 0.8);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  background: rgba(26, 26, 46, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(99, 102, 241, 0.12);
 }
 
-.glass-hover:hover {
-  border-color: rgba(99, 102, 241, 0.35);
-  box-shadow: 0 0 30px rgba(99, 102, 241, 0.1);
+.glass-hover:active {
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+@media (hover: hover) {
+  .glass-hover:hover {
+    border-color: rgba(99, 102, 241, 0.35);
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.1);
+  }
 }
 
 /* Glow effect */
 .glow {
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.15),
-              0 0 60px rgba(99, 102, 241, 0.05);
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.12),
+              0 0 40px rgba(99, 102, 241, 0.04);
 }
 
 /* Flappy game canvas */
 .game-canvas {
   image-rendering: pixelated;
-  cursor: pointer;
+  touch-action: none;
 }
 
 /* Calendar event colors */
-.event-trip { background: rgba(6, 182, 212, 0.2); border-left: 3px solid #06b6d4; }
-.event-todo { background: rgba(245, 158, 11, 0.2); border-left: 3px solid #f59e0b; }
-.event-event { background: rgba(99, 102, 241, 0.2); border-left: 3px solid #6366f1; }
+.event-trip { background: rgba(6, 182, 212, 0.15); border-left: 3px solid #06b6d4; }
+.event-todo { background: rgba(245, 158, 11, 0.15); border-left: 3px solid #f59e0b; }
+.event-event { background: rgba(99, 102, 241, 0.15); border-left: 3px solid #6366f1; }
+
+/* Prevent pull-to-refresh interfering with scroll */
+#root {
+  overscroll-behavior: contain;
+}

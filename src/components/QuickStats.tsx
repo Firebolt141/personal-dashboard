@@ -14,43 +14,42 @@ export default function QuickStats() {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.1 }}
-      className="glass rounded-2xl p-5 glass-hover"
+      className="glass rounded-xl p-4 glass-hover"
     >
-      <h2 className="text-lg font-semibold text-white mb-1">{greeting}</h2>
-      <p className="text-sm text-gray-400 mb-4">
-        {now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+      <h2 className="text-base font-semibold text-white">{greeting}</h2>
+      <p className="text-xs text-gray-400 mb-3">
+        {now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
       </p>
 
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white/5 rounded-xl p-3 text-center">
-          <Clock size={16} className="mx-auto mb-1 text-[var(--color-primary-light)]" />
-          <div className="text-lg font-bold text-white font-mono">
+      <div className="grid grid-cols-3 gap-2">
+        <div className="bg-white/5 rounded-lg p-2.5 text-center">
+          <Clock size={14} className="mx-auto mb-0.5 text-[var(--color-primary-light)]" />
+          <div className="text-base font-bold text-white font-mono leading-tight">
             {now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
           </div>
-          <div className="text-xs text-gray-500 mt-0.5">Local Time</div>
+          <div className="text-[10px] text-gray-500">Local</div>
         </div>
-        <div className="bg-white/5 rounded-xl p-3 text-center">
-          <Flame size={16} className="mx-auto mb-1 text-[var(--color-accent-amber)]" />
-          <div className="text-lg font-bold text-white font-mono">
-            Day {dayOfYear}
+        <div className="bg-white/5 rounded-lg p-2.5 text-center">
+          <Flame size={14} className="mx-auto mb-0.5 text-[var(--color-accent-amber)]" />
+          <div className="text-base font-bold text-white font-mono leading-tight">
+            {dayOfYear}
           </div>
-          <div className="text-xs text-gray-500 mt-0.5">of {totalDays}</div>
+          <div className="text-[10px] text-gray-500">Day of Year</div>
         </div>
-        <div className="bg-white/5 rounded-xl p-3 text-center">
-          <Target size={16} className="mx-auto mb-1 text-[var(--color-accent-emerald)]" />
-          <div className="text-lg font-bold text-white font-mono">
+        <div className="bg-white/5 rounded-lg p-2.5 text-center">
+          <Target size={14} className="mx-auto mb-0.5 text-[var(--color-accent-emerald)]" />
+          <div className="text-base font-bold text-white font-mono leading-tight">
             {yearProgress}%
           </div>
-          <div className="text-xs text-gray-500 mt-0.5">Year Done</div>
+          <div className="text-[10px] text-gray-500">Year Done</div>
         </div>
       </div>
 
-      {/* Year progress bar */}
-      <div className="mt-3">
-        <div className="w-full h-1.5 rounded-full bg-white/5 overflow-hidden">
+      <div className="mt-2.5">
+        <div className="w-full h-1 rounded-full bg-white/5 overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${yearProgress}%` }}

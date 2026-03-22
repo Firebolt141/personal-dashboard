@@ -15,7 +15,7 @@ import {
 import { useCalendarEvents } from '../hooks/useCalendarEvents'
 import type { EventType } from '../types/calendar'
 
-const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
@@ -98,47 +98,47 @@ export default function Calendar() {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.6 }}
-      className="glass rounded-2xl overflow-hidden glass-hover"
+      className="glass rounded-xl overflow-hidden glass-hover"
     >
       {/* Header */}
-      <div className="p-4 border-b border-white/5 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <CalendarIcon size={16} className="text-[var(--color-primary-light)]" />
-          <span className="text-sm font-semibold text-white">Calendar</span>
+      <div className="p-3 border-b border-white/5 flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <CalendarIcon size={14} className="text-[var(--color-primary-light)]" />
+          <span className="text-xs font-semibold text-white">Calendar</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <button
             onClick={prevMonth}
-            className="p-1 rounded-lg hover:bg-white/5 transition-colors"
+            className="p-1.5 rounded-lg active:bg-white/10 transition-colors"
           >
             <ChevronLeft size={16} className="text-gray-400" />
           </button>
-          <span className="text-sm font-medium text-white min-w-[140px] text-center">
+          <span className="text-xs font-medium text-white min-w-[110px] text-center">
             {MONTHS[currentMonth]} {currentYear}
           </span>
           <button
             onClick={nextMonth}
-            className="p-1 rounded-lg hover:bg-white/5 transition-colors"
+            className="p-1.5 rounded-lg active:bg-white/10 transition-colors"
           >
             <ChevronRight size={16} className="text-gray-400" />
           </button>
         </div>
       </div>
 
-      {/* Day headers */}
-      <div className="grid grid-cols-7 px-4 pt-3">
-        {DAYS.map(d => (
-          <div key={d} className="text-center text-xs font-medium text-gray-500 pb-2">
+      {/* Day headers - single letter for mobile */}
+      <div className="grid grid-cols-7 px-3 pt-2">
+        {DAYS.map((d, i) => (
+          <div key={`${d}-${i}`} className="text-center text-[10px] font-medium text-gray-500 pb-1.5">
             {d}
           </div>
         ))}
       </div>
 
-      {/* Calendar grid */}
-      <div className="grid grid-cols-7 px-4 pb-3 gap-y-1">
+      {/* Calendar grid — larger touch targets */}
+      <div className="grid grid-cols-7 px-2 pb-2">
         {calendarDays.map((day, i) => {
           if (day === null) return <div key={`empty-${i}`} />
 
@@ -153,9 +153,10 @@ export default function Calendar() {
               key={dateKey}
               onClick={() => setSelectedDate(isSelected ? null : dateKey)}
               className={`
-                relative flex flex-col items-center py-1.5 rounded-lg text-sm transition-all
+                relative flex flex-col items-center justify-center
+                h-10 rounded-lg text-sm transition-all active:scale-95
                 ${isToday ? 'text-[var(--color-primary-light)] font-bold' : 'text-gray-300'}
-                ${isSelected ? 'bg-[var(--color-primary)]/20 ring-1 ring-[var(--color-primary)]/40' : 'hover:bg-white/5'}
+                ${isSelected ? 'bg-[var(--color-primary)]/20 ring-1 ring-[var(--color-primary)]/40' : 'active:bg-white/5'}
               `}
             >
               {day}
@@ -185,18 +186,18 @@ export default function Calendar() {
             transition={{ duration: 0.3 }}
             className="overflow-hidden border-t border-white/5"
           >
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium text-white">
+            <div className="p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-white">
                   {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    month: 'long',
+                    weekday: 'short',
+                    month: 'short',
                     day: 'numeric',
                   })}
                 </span>
                 <button
                   onClick={() => setShowAddForm(true)}
-                  className="flex items-center gap-1 text-xs text-[var(--color-primary-light)] hover:text-white transition-colors"
+                  className="flex items-center gap-1 text-xs text-[var(--color-primary-light)] active:text-white transition-colors p-1"
                 >
                   <Plus size={14} />
                   Add
@@ -210,19 +211,19 @@ export default function Calendar() {
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden mb-3"
+                    className="overflow-hidden mb-2"
                   >
-                    <div className="bg-white/5 rounded-xl p-3 space-y-2">
+                    <div className="bg-white/5 rounded-lg p-3 space-y-2">
                       <input
                         type="text"
                         value={newTitle}
                         onChange={e => setNewTitle(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && handleAddEvent()}
                         placeholder="What's happening?"
-                        className="w-full bg-white/5 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:ring-1 focus:ring-[var(--color-primary)]/40"
+                        className="w-full bg-white/5 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:ring-1 focus:ring-[var(--color-primary)]/40"
                         autoFocus
                       />
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         {(Object.keys(eventTypeConfig) as EventType[]).map(type => {
                           const config = eventTypeConfig[type]
                           const Icon = config.icon
@@ -231,8 +232,8 @@ export default function Calendar() {
                               key={type}
                               onClick={() => setNewType(type)}
                               className={`
-                                flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-all
-                                ${newType === type ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-gray-300'}
+                                flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs transition-all
+                                ${newType === type ? 'bg-white/10 text-white' : 'text-gray-400 active:text-gray-300'}
                               `}
                               style={newType === type ? { borderLeft: `2px solid ${config.color}` } : undefined}
                             >
@@ -244,13 +245,13 @@ export default function Calendar() {
                         <div className="flex-1" />
                         <button
                           onClick={() => setShowAddForm(false)}
-                          className="p-1 text-gray-500 hover:text-gray-300"
+                          className="p-1.5 text-gray-500 active:text-gray-300"
                         >
                           <X size={14} />
                         </button>
                         <button
                           onClick={handleAddEvent}
-                          className="px-3 py-1 bg-[var(--color-primary)] rounded-lg text-xs text-white hover:bg-[var(--color-primary-dark)] transition-colors"
+                          className="px-4 py-1.5 bg-[var(--color-primary)] rounded-lg text-xs text-white active:bg-[var(--color-primary-dark)] transition-colors"
                         >
                           Add
                         </button>
@@ -262,7 +263,7 @@ export default function Calendar() {
 
               {/* Event list */}
               {selectedEvents.length === 0 && !showAddForm && (
-                <p className="text-xs text-gray-500 text-center py-2">No events for this day</p>
+                <p className="text-xs text-gray-500 text-center py-2">No events</p>
               )}
               <div className="space-y-1.5">
                 {selectedEvents.map(event => {
@@ -272,32 +273,32 @@ export default function Calendar() {
                     <motion.div
                       key={event.id}
                       layout
-                      initial={{ opacity: 0, x: -10 }}
+                      initial={{ opacity: 0, x: -8 }}
                       animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 10 }}
+                      exit={{ opacity: 0, x: 8 }}
                       className={`
-                        flex items-center gap-2 px-3 py-2 rounded-lg text-sm
+                        flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm
                         event-${event.type}
                         ${event.completed ? 'opacity-50' : ''}
                       `}
                     >
-                      <Icon size={14} style={{ color: config.color }} />
-                      <span className={`flex-1 ${event.completed ? 'line-through' : ''} text-gray-200`}>
+                      <Icon size={14} style={{ color: config.color }} className="shrink-0" />
+                      <span className={`flex-1 min-w-0 truncate ${event.completed ? 'line-through' : ''} text-gray-200`}>
                         {event.title}
                       </span>
                       {event.type === 'todo' && (
                         <button
                           onClick={() => toggleComplete(event.id)}
-                          className="p-0.5 rounded hover:bg-white/10 transition-colors"
+                          className="p-1.5 rounded active:bg-white/10 transition-colors shrink-0"
                         >
-                          <Check size={12} className={event.completed ? 'text-[var(--color-accent-emerald)]' : 'text-gray-500'} />
+                          <Check size={14} className={event.completed ? 'text-[var(--color-accent-emerald)]' : 'text-gray-500'} />
                         </button>
                       )}
                       <button
                         onClick={() => removeEvent(event.id)}
-                        className="p-0.5 rounded hover:bg-white/10 transition-colors text-gray-500 hover:text-[var(--color-accent-rose)]"
+                        className="p-1.5 rounded active:bg-white/10 transition-colors text-gray-500 active:text-[var(--color-accent-rose)] shrink-0"
                       >
-                        <Trash2 size={12} />
+                        <Trash2 size={14} />
                       </button>
                     </motion.div>
                   )
