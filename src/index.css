@@ -2,18 +2,24 @@
 
 @theme {
   --font-sans: 'Inter', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-  --color-primary: #6366f1;
-  --color-primary-light: #818cf8;
-  --color-primary-dark: #4f46e5;
-  --color-surface: #1a1a2e;
-  --color-surface-light: #25253e;
-  --color-surface-lighter: #2d2d4a;
-  --color-accent-amber: #f59e0b;
-  --color-accent-emerald: #10b981;
-  --color-accent-rose: #f43f5e;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --color-primary: #a855f7;
+  --color-primary-light: #c084fc;
+  --color-primary-dark: #9333ea;
+  --color-surface: #0c0c1d;
+  --color-surface-light: #141428;
+  --color-surface-lighter: #1c1c36;
+  --color-accent-amber: #facc15;
+  --color-accent-emerald: #22d3ee;
+  --color-accent-rose: #fb7185;
   --color-accent-cyan: #06b6d4;
-  --color-bg: #0f0f23;
+  --color-accent-pink: #f472b6;
+  --color-accent-lime: #a3e635;
+  --color-bg: #050510;
+  --color-neon-purple: #bf5af2;
+  --color-neon-blue: #00d4ff;
+  --color-neon-green: #39ff14;
+  --color-neon-pink: #ff2d78;
 }
 
 * {
@@ -42,49 +48,128 @@ body {
   overscroll-behavior-y: contain;
 }
 
-/* Hide scrollbar on mobile for cleaner look */
+/* Hide scrollbar on mobile */
 ::-webkit-scrollbar {
   width: 0;
   height: 0;
 }
 
-/* Glass morphism utility */
-.glass {
-  background: rgba(26, 26, 46, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(99, 102, 241, 0.12);
+/* Neon glass card */
+.neon-card {
+  background: linear-gradient(135deg, rgba(12, 12, 29, 0.9), rgba(20, 20, 40, 0.85));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(168, 85, 247, 0.15);
+  box-shadow: 0 0 1px rgba(168, 85, 247, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
-.glass-hover:active {
-  border-color: rgba(99, 102, 241, 0.3);
+.neon-card:active {
+  border-color: rgba(168, 85, 247, 0.35);
 }
 
 @media (hover: hover) {
-  .glass-hover:hover {
-    border-color: rgba(99, 102, 241, 0.35);
-    box-shadow: 0 0 30px rgba(99, 102, 241, 0.1);
+  .neon-card:hover {
+    border-color: rgba(168, 85, 247, 0.4);
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.12),
+                0 0 1px rgba(168, 85, 247, 0.5);
   }
 }
 
-/* Glow effect */
-.glow {
-  box-shadow: 0 0 15px rgba(99, 102, 241, 0.12),
-              0 0 40px rgba(99, 102, 241, 0.04);
+/* Neon glow variations */
+.glow-purple {
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.2),
+              0 0 45px rgba(168, 85, 247, 0.05);
 }
 
-/* Flappy game canvas */
+.glow-cyan {
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.2),
+              0 0 45px rgba(6, 182, 212, 0.05);
+}
+
+.glow-pink {
+  box-shadow: 0 0 15px rgba(244, 114, 182, 0.2),
+              0 0 45px rgba(244, 114, 182, 0.05);
+}
+
+/* Neon text */
+.neon-text-purple {
+  color: #c084fc;
+  text-shadow: 0 0 10px rgba(168, 85, 247, 0.5),
+               0 0 30px rgba(168, 85, 247, 0.2);
+}
+
+.neon-text-cyan {
+  color: #22d3ee;
+  text-shadow: 0 0 10px rgba(6, 182, 212, 0.5),
+               0 0 30px rgba(6, 182, 212, 0.2);
+}
+
+.neon-text-pink {
+  color: #fb7185;
+  text-shadow: 0 0 10px rgba(251, 113, 133, 0.5),
+               0 0 30px rgba(251, 113, 133, 0.2);
+}
+
+/* Scanline overlay effect */
+.scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* Neon border animation */
+@keyframes neon-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+.neon-pulse {
+  animation: neon-pulse 2s ease-in-out infinite;
+}
+
+/* Game canvas */
 .game-canvas {
   image-rendering: pixelated;
   touch-action: none;
 }
 
-/* Calendar event colors */
-.event-trip { background: rgba(6, 182, 212, 0.15); border-left: 3px solid #06b6d4; }
-.event-todo { background: rgba(245, 158, 11, 0.15); border-left: 3px solid #f59e0b; }
-.event-event { background: rgba(99, 102, 241, 0.15); border-left: 3px solid #6366f1; }
+/* Calendar event colors - neon version */
+.event-trip { background: rgba(6, 182, 212, 0.1); border-left: 2px solid #22d3ee; }
+.event-todo { background: rgba(250, 204, 21, 0.1); border-left: 2px solid #facc15; }
+.event-event { background: rgba(168, 85, 247, 0.1); border-left: 2px solid #c084fc; }
 
-/* Prevent pull-to-refresh interfering with scroll */
+/* Prevent pull-to-refresh */
 #root {
   overscroll-behavior: contain;
+}
+
+/* Neon divider */
+.neon-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.3), transparent);
+}
+
+/* Ring progress for fitness */
+@keyframes ring-fill {
+  from { stroke-dashoffset: var(--ring-circumference); }
+}
+
+/* Smooth number counter */
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.count-up {
+  animation: count-up 0.5s ease-out forwards;
 }
